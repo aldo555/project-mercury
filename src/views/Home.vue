@@ -110,7 +110,6 @@ export default {
         if (word.x > this.canvas.width) {
           this.removeWord(word)
           this.score.missed += 1
-          console.log(`missed ${word.word}`)
           return
         }
 
@@ -136,7 +135,6 @@ export default {
         this.score.timeElapsed += 1
         this.score.wpm = this.score.success / (this.score.timeElapsed / 60)
         if (this.score.timeElapsed % 60 === 0) {
-          console.log('bump it up bitch')
           this.gameOptions.wordsToAdd += 1
         }
         this.displayWords(this.gameOptions.wordsToAdd)
@@ -158,7 +156,6 @@ export default {
 
       if (wordToDelete) {
         this.score.success += 1
-        console.log(`scored ${wordToDelete.word}`)
         this.removeWord(wordToDelete)
       }
 
