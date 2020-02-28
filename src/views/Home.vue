@@ -2,7 +2,7 @@
   <div class="min-h-screen relative">
     <h1 v-if="loading" class="text-6xl text-indigo-600 text-center">Loading</h1>
     <form @submit.prevent="scoreWord">
-      <input v-model="userInput" type="text" class="text-indigo-900 w-full text-center text-6xl shadow-xl border-b border-gray-200" placeholder="type it up" />
+      <input ref="user-input" v-model="userInput" type="text" class="text-indigo-900 w-full text-center text-6xl shadow-xl border-b border-gray-200" placeholder="type it up" />
     </form>
     <canvas v-show="!loading" ref="game-canvas"></canvas>
     <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import * as words from '@/dict/english.json'
+// import * as words from '@/dict/english.json'
 
 export default {
   name: 'Home',
@@ -33,13 +33,14 @@ export default {
       score: {
         timeElapsed: 0,
         success: 0,
+        errors: 0,
         missed: 0,
         wpm: 0
       },
       gameOptions: {
         wordsToAdd: 1,
         intensity: 1,
-        intensityIncreaseRate: 0.5
+        intensityIncreaseRate: 0.1
       },
       timestep: {
         now: null,
@@ -54,7 +55,7 @@ export default {
     this.initCanvas()
     this.prepWords()
     this.loading = false
-    this.timestep.last = this.timestamp()
+    this.$refs['user-input'].focus()
     this.startGame()
   },
   methods: {
@@ -81,7 +82,8 @@ export default {
       return window.performance && window.performance.now ? window.performance.now() : new Date().getTime()
     },
     prepWords () {
-      Object.values(words.default).forEach(word => {
+      const words = require('@/dict/english.json')
+      Object.values(words).forEach(word => {
         this.words.all.push({
           word: word,
           x: 0,
@@ -99,12 +101,19 @@ export default {
     removeWord (word) {
       this.words.displayed.splice(this.words.displayed.indexOf(word), 1)
     },
+    computeWpm () {
+      return (this.score.success + this.score.errors) / (this.score.timeElapsed / 60)
+    },
     startGame () {
       this.displayWords(this.gameOptions.wordsToAdd)
       requestAnimationFrame(this.drawWords)
     },
     drawWords () {
       this.clearCanvas()
+
+      if (!this.timestep.last) {
+        this.timestep.last = this.timestamp()
+      }
 
       this.words.displayed.forEach(word => {
         if (word.x > this.canvas.width) {
@@ -121,7 +130,7 @@ export default {
           word.y -= 20
         }
 
-        word.x += Math.cbrt(this.gameOptions.intensity) // Math.floor(Math.random() * this.gameOptions.intensity)
+        word.x += Math.cbrt(this.gameOptions.intensity) // Math.cbrt(this.gameOptions.intensity * this.timestep.dt)
         word.y += Math.random() < 0.5 ? -1 : 1
 
         this.drawSingleWord(word)
@@ -133,11 +142,13 @@ export default {
       while (this.timestep.dt > this.timestep.step) {
         this.timestep.dt = this.timestep.dt - this.timestep.step
         this.score.timeElapsed += 1
-        this.score.wpm = this.score.success / (this.score.timeElapsed / 60)
+        this.score.wpm = this.computeWpm()
         if (this.score.timeElapsed % 60 === 0) {
-          this.gameOptions.wordsToAdd += 1
+          this.gameOptions.wordsToAdd += 1 // kinda makes it too hard
         }
-        this.displayWords(this.gameOptions.wordsToAdd)
+        if (this.score.timeElapsed % 2 === 0) {
+          this.displayWords(this.gameOptions.wordsToAdd)
+        }
         this.gameOptions.intensity += this.gameOptions.intensityIncreaseRate
       }
 
@@ -151,15 +162,15 @@ export default {
     },
     scoreWord () {
       const wordToDelete = this.words.displayed.find(word => {
-        return word.word === this.userInput
+        return word.word === this.userInput.toLowerCase()
       })
 
       if (wordToDelete) {
         this.score.success += 1
         this.removeWord(wordToDelete)
+      } else {
+        this.score.errors += 1
       }
-
-      // keep track of the score you little bitch
 
       this.userInput = ''
     }
