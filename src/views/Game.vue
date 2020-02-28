@@ -7,7 +7,7 @@
     <canvas v-show="!loading" ref="game-canvas"></canvas>
     <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
       Scored: {{ score.success }} <br />
-      Missed: {{ score.missed }} <br />
+      Accuracy: {{ computeAccuracy() ? `${computeAccuracy()}%` : '-'  }} <br />
       <span class="text-indigo-500">WPM: {{ Math.floor(score.wpm) }}</span>
     </div>
   </div>
@@ -17,7 +17,7 @@
 // import * as words from '@/dict/english.json'
 
 export default {
-  name: 'Home',
+  name: 'Game',
   data () {
     return {
       loading: true,
@@ -51,6 +51,9 @@ export default {
       userInput: ''
     }
   },
+  props: {
+    menuOptions: Object
+  },
   mounted () {
     this.initCanvas()
     this.prepWords()
@@ -81,11 +84,14 @@ export default {
     timestamp () {
       return window.performance && window.performance.now ? window.performance.now() : new Date().getTime()
     },
+    noAccents (word) {
+      return word.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    },
     prepWords () {
-      const words = require('@/dict/english.json')
+      const words = require(`@/dict/${this.menuOptions ? this.menuOptions.language : 'english'}.json`)
       Object.values(words).forEach(word => {
         this.words.all.push({
-          word: word,
+          word: word.toLowerCase(),
           x: 0,
           y: Math.floor(Math.random() * this.canvas.height),
           width: this.context.measureText(word).width,
@@ -103,6 +109,9 @@ export default {
     },
     computeWpm () {
       return (this.score.success + this.score.errors) / (this.score.timeElapsed / 60)
+    },
+    computeAccuracy () {
+      return Math.floor((this.score.success / (this.score.success + this.score.errors)) * 100)
     },
     startGame () {
       this.displayWords(this.gameOptions.wordsToAdd)
@@ -162,6 +171,10 @@ export default {
     },
     scoreWord () {
       const wordToDelete = this.words.displayed.find(word => {
+        if (this.menuOptions && !this.menuOptions.accents) {
+          return this.noAccents(word.word) === this.userInput.toLowerCase()
+        }
+
         return word.word === this.userInput.toLowerCase()
       })
 
