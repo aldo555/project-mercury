@@ -6,9 +6,9 @@
     </form>
     <canvas v-show="!loading" ref="game-canvas"></canvas>
     <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
-      Scored: {{ score.success }} <br />
       Accuracy: {{ computeAccuracy() ? `${computeAccuracy()}%` : '-'  }} <br />
-      <span class="text-indigo-500">WPM: {{ Math.floor(score.wpm) }}</span>
+      <span class="text-indigo-500">WPM: {{ Math.floor(score.wpm) }}</span> <br />
+      Skill level: {{ getSkillLevel() }}
     </div>
   </div>
 </template>
@@ -112,6 +112,19 @@ export default {
     },
     computeAccuracy () {
       return Math.floor((this.score.success / (this.score.success + this.score.errors)) * 100)
+    },
+    getSkillLevel () {
+      if (this.score.wpm <= 9) {
+        return 'Pathetic'
+      } else if (this.score.wpm <= 19) {
+        return 'Barely trying'
+      } else if (this.score.wpm <= 29) {
+        return 'Junior Receptionist'
+      } else if (this.score.wpm <= 39) {
+        return 'Keyboard Warrior'
+      }
+
+      return 'Hacker'
     },
     startGame () {
       this.displayWords(this.gameOptions.wordsToAdd)
