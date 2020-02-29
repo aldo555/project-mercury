@@ -6,16 +6,19 @@
     </form>
     <canvas v-show="!loading" ref="game-canvas"></canvas>
     <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
-      Accuracy: {{ computeAccuracy() ? `${computeAccuracy()}%` : '-'  }} <br />
-      <span class="text-indigo-500">WPM: {{ Math.floor(score.wpm) }}</span> <br />
-      Skill level: {{ getSkillLevel() }}
+      Accuracy: {{ score.accuracy || '-' }} <br />
+      <span class="text-indigo-500">WPM: {{ score.wpm }}</span> <br />
+      Skill level: {{ score.skillLevel }}
+    </div>
+    <div class="absolute top-0 right-0 text-xl py-1 px-4 text-indigo-700 mt-3 flex flex-row">
+      <div v-for="heart in (gameOptions.missesToLose - score.missed)" :key="heart" class="mr-2">
+        <svg class="w-16 h-16 fill-current text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 3.22l-.61-.6a5.5 5.5 0 0 0-7.78 7.77L10 18.78l8.39-8.4a5.5 5.5 0 0 0-7.78-7.77l-.61.61z"></path></svg>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-// import * as words from '@/dict/english.json'
-
 export default {
   name: 'Game',
   data () {
@@ -35,12 +38,15 @@ export default {
         success: 0,
         errors: 0,
         missed: 0,
-        wpm: 0
+        wpm: 0,
+        accuracy: 0,
+        skillLevel: ''
       },
       gameOptions: {
-        wordsToAdd: 1,
+        wordsToAdd: 2,
         intensity: 1,
-        intensityIncreaseRate: 0.1
+        intensityIncreaseRate: 0.1,
+        missesToLose: 5
       },
       timestep: {
         now: null,
@@ -87,34 +93,53 @@ export default {
     noAccents (word) {
       return word.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     },
+    checkWordCollision (word1, word2) {
+      // returns true if two words are colliding
+      return !(word1.x > word2.x + word2.width ||
+        word1.x + word1.width < word2.x ||
+        word1.y > word2.y + this.canvasOptions.textSize ||
+        word1.y + this.canvasOptions.textSize < word2.y)
+    },
     prepWords () {
       const words = require(`@/dict/${this.menuOptions ? this.menuOptions.language : 'english'}.json`)
       Object.values(words).forEach(word => {
         this.words.all.push({
           word: word.toLowerCase(),
-          x: 0,
+          x: 0 - (this.context.measureText(word).width + Math.floor(Math.random() * this.context.measureText(word).width)),
           y: Math.floor(Math.random() * this.canvas.height),
           width: this.context.measureText(word).width,
-          color: this.randomColor()
+          color: '#3c366b' // this.randomColor()
         })
       })
     },
     displayWords (numberOfWords) {
       const shuffled = [...this.words.all].sort(() => 0.5 - Math.random())
-      // this.words.displayed = shuffled.slice(0, numberOfWords)
+
+      const wordsToAdd = shuffled.slice(0, numberOfWords)
+
+      // divide into rows depending on number of words and place each word at a
+      // random spot in that row with padding that's depending on the text size
+      wordsToAdd.forEach((word, index) => {
+        const row = this.canvas.height / wordsToAdd.length
+
+        word.y = (row * index) + this.canvasOptions.textSize + Math.floor(Math.random() * (row - this.canvasOptions.textSize))
+      })
+
       this.words.displayed = [...this.words.displayed, ...shuffled.slice(0, numberOfWords)]
     },
     removeWord (word) {
       this.words.displayed.splice(this.words.displayed.indexOf(word), 1)
     },
     computeWpm () {
-      return (this.score.success + this.score.errors) / (this.score.timeElapsed / 60)
+      return Math.floor((this.score.success + this.score.errors) / (this.score.timeElapsed / 60))
     },
     computeAccuracy () {
       return Math.floor((this.score.success / (this.score.success + this.score.errors)) * 100)
     },
-    getSkillLevel () {
-      if (this.score.wpm <= 9) {
+    computeSkillLevel () {
+      if (this.score.wpm <= 4) {
+        return 'Shameful'
+      } else if (this.score.wpm <= 9) {
         return 'Pathetic'
       } else if (this.score.wpm <= 19) {
         return 'Barely trying'
@@ -137,26 +162,30 @@ export default {
         this.timestep.last = this.timestamp()
       }
 
-      this.words.displayed.forEach(word => {
+      for (let i = 0; i < this.words.displayed.length; i++) {
+        const word = this.words.displayed[i]
+
         if (word.x > this.canvas.width) {
           this.removeWord(word)
           this.score.missed += 1
-          return
-        }
 
-        if (word.y < this.canvasOptions.textSize) {
-          word.y += 5
-        }
+          if (this.score.missed >= this.gameOptions.missesToLose) {
+            break
+          }
 
-        if (word.y > this.canvas.height - this.canvasOptions.textSize) {
-          word.y -= 20
+          continue
         }
 
         word.x += Math.cbrt(this.gameOptions.intensity) // Math.cbrt(this.gameOptions.intensity * this.timestep.dt)
-        word.y += Math.random() < 0.5 ? -1 : 1
 
         this.drawSingleWord(word)
-      })
+      }
+
+      if (this.score.missed >= this.gameOptions.missesToLose) {
+        window.removeEventListener('resize', this.resizeCanvas)
+        this.$router.push({ name: 'Results', params: { score: this.score } })
+        return
+      }
 
       this.timestep.now = this.timestamp()
       this.timestep.dt = this.timestep.dt + Math.min(1, (this.timestep.now - this.timestep.last) / 1000)
@@ -165,10 +194,12 @@ export default {
         this.timestep.dt = this.timestep.dt - this.timestep.step
         this.score.timeElapsed += 1
         this.score.wpm = this.computeWpm()
+        this.score.accuracy = this.computeAccuracy()
+        this.score.skillLevel = this.computeSkillLevel()
         if (this.score.timeElapsed % 60 === 0) {
           this.gameOptions.wordsToAdd += 1 // kinda makes it too hard
         }
-        if (this.score.timeElapsed % 2 === 0) {
+        if (this.score.timeElapsed % 5 === 0) {
           this.displayWords(this.gameOptions.wordsToAdd)
         }
         this.gameOptions.intensity += this.gameOptions.intensityIncreaseRate
@@ -179,7 +210,14 @@ export default {
       requestAnimationFrame(this.drawWords)
     },
     drawSingleWord (word) {
-      this.context.fillStyle = word.color
+      if (word.x >= this.canvas.width - this.canvas.width / 3) {
+        this.context.fillStyle = '#c53030'
+      } else if (word.x >= this.canvas.width - (this.canvas.width / 3) * 2) {
+        this.context.fillStyle = '#ecc94b'
+      } else {
+        this.context.fillStyle = word.color
+      }
+
       this.context.fillText(word.word, word.x, word.y)
     },
     scoreWord () {
