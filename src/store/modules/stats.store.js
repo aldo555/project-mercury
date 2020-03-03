@@ -6,9 +6,27 @@ const state = initialState()
 
 const getters = {
   getResults: state => state.results,
-  getLongestGame: state => state.results.reduce((prev, current) => (prev.timeElapsed > current.timeElapsed) ? prev : current).timeElapsed,
-  getAverageWpm: state => Math.floor(state.results.reduce((total, next) => total + next.wpm, 0) / state.results.length),
-  getAverageAccuracy: state => Math.floor(state.results.reduce((total, next) => total + next.accuracy, 0) / state.results.length)
+  getLongestGame: state => {
+    if (!state.results.length) {
+      return null
+    }
+
+    return state.results.reduce((prev, current) => (prev.timeElapsed > current.timeElapsed) ? prev : current).timeElapsed
+  },
+  getAverageWpm: state => {
+    if (!state.results.length) {
+      return null
+    }
+
+    return Math.floor(state.results.reduce((total, next) => total + next.wpm, 0) / state.results.length)
+  } ,
+  getAverageAccuracy: state => {
+    if (!state.results.length) {
+      return null
+    }
+    
+    return Math.floor(state.results.reduce((total, next) => total + next.accuracy, 0) / state.results.length)
+  }
 }
 
 const actions = {

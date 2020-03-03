@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col justify-center items-center px-4">
-    <div v-if="results" class="flex flex-col max-w-lg w-full mb-8">
+    <div v-if="results.length" class="flex flex-col max-w-lg w-full mb-8">
       <router-link :to="{ name: 'Menu' }" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</router-link>
       <h1 class="text-center mb-4 text-indigo-900 text-4xl capitalize">Stats across all games played</h1>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Overall skill level - <strong class="text-indigo-500">{{ computeSkillLevel() }}</strong></h2>
