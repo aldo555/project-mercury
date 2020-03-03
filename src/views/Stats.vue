@@ -7,6 +7,7 @@
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average WPM - <strong class="text-indigo-500">{{ averageWpm }}</strong></h2>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average Accuracy - <strong class="text-indigo-500">{{ averageAccuracy }}</strong></h2>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Longest game - <strong class="text-indigo-500">{{ longestGameMinutes() }}:{{ longestGameSeconds() }}</strong></h2>
+      <!-- Add reset stats button -->
     </div>
     <div v-else class="flex flex-col max-w-lg w-full mb-8">
       <router-link :to="{ name: 'Menu' }" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</router-link>

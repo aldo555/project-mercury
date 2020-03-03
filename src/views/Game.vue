@@ -61,6 +61,8 @@ export default {
       language: 'Settings/getLanguage',
       useAccents: 'Settings/getUseAccents',
       wordsToAddStartingPoint: 'Settings/getWordsToAddStartingPoint',
+      wordsToAddInterval: 'Settings/getWordsToAddInterval',
+      addWordInterval: 'Settings/getAddWordInterval',
       intensityStartingPoint: 'Settings/getIntensityStartingPoint',
       intensityIncreaseRate: 'Settings/getIntensityIncreaseRate',
       missesToLose: 'Settings/getMissesToLose'
@@ -197,10 +199,10 @@ export default {
         this.score.wpm = this.computeWpm()
         this.score.accuracy = this.computeAccuracy()
         this.score.skillLevel = this.computeSkillLevel()
-        if (this.score.timeElapsed % 60 === 0) {
-          this.gameOptions.wordsToAdd += 1 // kinda makes it too hard
+        if (this.score.timeElapsed % this.addWordInterval === 0) {
+          this.gameOptions.wordsToAdd += 1
         }
-        if (this.score.timeElapsed % 5 === 0) {
+        if (this.score.timeElapsed % this.wordsToAddInterval === 0) {
           this.displayWords(this.gameOptions.wordsToAdd)
         }
         this.gameOptions.intensity += this.intensityIncreaseRate
