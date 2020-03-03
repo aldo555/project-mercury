@@ -18,7 +18,19 @@ const routes = [
     path: '/results',
     name: 'Results',
     component: () => import(/* webpackChunkName: "results" */ '../views/Results.vue'),
-    props: true
+    props: true,
+    beforeEnter: (to, from, next) => {
+      if (from.name !== 'Game') {
+        next({ name: 'Menu' })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/stats',
+    name: 'Stats',
+    component: () => import(/* webpackChunkName: "results" */ '../views/Stats.vue'),
   }
 ]
 

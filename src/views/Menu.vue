@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen flex flex-col justify-center items-center px-4">
-    <button v-if="!isPlayMenuDisplayed" @click="togglePlayMenu" class="bg-indigo-500 px-10 py-4 mb-8 text-4xl uppercase rounded-lg text-white max-w-xl w-full">Play</button>
-    <div v-if="isPlayMenuDisplayed" class="flex flex-col max-w-lg w-full mb-8">
-      <button @click="togglePlayMenu" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</button>
+    <button id="play-button" v-if="!isPlayMenuDisplayed" @click="togglePlayMenu" class="bg-indigo-500 px-10 py-4 mb-8 text-4xl uppercase rounded-lg text-white max-w-xl w-full">Play</button>
+    <div id="play-menu" v-if="isPlayMenuDisplayed" class="flex flex-col max-w-lg w-full mb-8">
+      <button id="back-button" @click="togglePlayMenu" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</button>
       <h2 class="text-center mb-4 text-indigo-900 text-2xl font-bold capitalize">Language - {{ language }}</h2>
       <button @click="selectLanguage('english')" class="bg-indigo-700 px-5 py-2 mb-2 text-2xl uppercase rounded-lg text-white w-full">English</button>
       <button @click="selectLanguage('romanian')" class="bg-indigo-700 px-5 py-2 mb-2 text-2xl uppercase rounded-lg text-white w-full">Romanian</button>
@@ -14,9 +14,9 @@
       <button disabled class="bg-indigo-300 px-5 py-2 mb-2 text-2xl uppercase rounded-lg text-white w-full">Easy</button>
       <button disabled class="bg-indigo-300 px-5 py-2 mb-2 text-2xl uppercase rounded-lg text-white w-full">Medium</button>
       <button disabled class="bg-indigo-300 px-5 py-2 mb-12 text-2xl uppercase rounded-lg text-white w-full">Hard</button>
-      <button @click="startGame" class="bg-indigo-500 px-10 py-4 mb-8 text-4xl uppercase rounded-lg text-white w-full">Start</button>
+      <button id="start-button" @click="startGame" class="bg-indigo-500 px-10 py-4 mb-8 text-4xl uppercase rounded-lg text-white w-full">Start</button>
     </div>
-    <button v-if="!isPlayMenuDisplayed" disabled class="bg-indigo-300 px-10 py-4 text-4xl uppercase rounded-lg text-indigo-100 max-w-xl w-full">Stats</button>
+    <router-link :to="{ name: 'Stats' }" v-if="!isPlayMenuDisplayed" class="bg-indigo-500 px-10 py-4 mb-8 text-4xl uppercase rounded-lg text-white max-w-xl w-full text-center">Stats</router-link>
   </div>
 </template>
 

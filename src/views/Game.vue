@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen relative">
     <form @submit.prevent="scoreWord">
-      <input ref="user-input" v-model="userInput" type="text" class="text-indigo-900 w-full text-center text-6xl shadow-xl border-b border-gray-200" placeholder="type it up" />
+      <input ref="user-input" v-model="userInput" type="text" class="text-indigo-900 w-full text-center text-6xl shadow-xl border-b border-gray-200" placeholder="type it up">
     </form>
     <canvas ref="game-canvas"></canvas>
     <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
@@ -18,8 +18,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import Word from '@/classes/Word'
+import { mapGetters, mapActions } from 'vuex'
+import Word from '@/common/Word'
 
 export default {
   name: 'Game',
@@ -71,6 +71,9 @@ export default {
     this.startGame()
   },
   methods: {
+    ...mapActions({
+      addNewResult: 'Stats/addNewResult'
+    }),
     initGame () {
       this.canvas = this.$refs['game-canvas']
       this.context = this.canvas.getContext('2d')
@@ -180,6 +183,7 @@ export default {
 
       if (this.score.missed >= this.missesToLose) {
         window.removeEventListener('resize', this.resizeCanvas)
+        this.addNewResult(this.score)
         this.$router.push({ name: 'Results', params: { score: this.score } })
         return
       }

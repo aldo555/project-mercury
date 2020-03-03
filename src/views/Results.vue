@@ -12,7 +12,7 @@
 export default {
   name: 'Results',
   props: {
-    score: Object
+    score: Object,
   },
   methods: {
     getElapsedMinutes () {
