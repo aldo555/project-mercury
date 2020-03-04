@@ -19,7 +19,13 @@ export default {
       return Math.floor(this.score.timeElapsed / 60)
     },
     getElapsedSeconds () {
-      return this.score.timeElapsed - (this.getElapsedMinutes() * 60)
+      const seconds =  this.score.timeElapsed - (this.getElapsedMinutes() * 60)
+
+      if (seconds < 10) {
+        return `0${seconds}`
+      }
+
+      return seconds
     }
   }
 }

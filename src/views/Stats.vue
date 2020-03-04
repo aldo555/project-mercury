@@ -5,7 +5,7 @@
       <h1 class="text-center mb-4 text-indigo-900 text-4xl capitalize">Stats across all games played</h1>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Overall skill level - <strong class="text-indigo-500">{{ computeSkillLevel() }}</strong></h2>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average WPM - <strong class="text-indigo-500">{{ averageWpm }}</strong></h2>
-      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average Accuracy - <strong class="text-indigo-500">{{ averageAccuracy }}</strong></h2>
+      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average Accuracy - <strong class="text-indigo-500">{{ averageAccuracy }}%</strong></h2>
       <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Longest game - <strong class="text-indigo-500">{{ longestGameMinutes() }}:{{ longestGameSeconds() }}</strong></h2>
       <!-- Add reset stats button -->
     </div>
@@ -34,7 +34,13 @@ export default {
       return Math.floor(this.longestGame / 60)
     },
     longestGameSeconds () {
-      return this.longestGame - (this.longestGameMinutes() * 60)
+      const seconds = this.longestGame - (this.longestGameMinutes() * 60)
+
+      if (seconds < 10) {
+        return `0${seconds}`
+      }
+
+      return seconds
     },
     computeSkillLevel () {
       if (this.averageWpm <= 4) {
