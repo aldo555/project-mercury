@@ -6,13 +6,39 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'Menu',
-    component: () => import(/* webpackChunkName: "menu" */ '../views/Menu.vue')
+    name: 'Splash',
+    component: () => import(/* webpackChunkName: "splash" */ '../views/Splash.vue'),
+    beforeEnter: (to, from, next) => {
+      if (from.name) {
+        next(false)
+      } else {
+        next()
+      }
+    }
   },
   {
-    path: '/play',
+    path: '/menu',
+    name: 'Menu',
+    component: () => import(/* webpackChunkName: "menu" */ '../views/Menu.vue'),
+    beforeEnter: (to, from, next) => {
+      if (from.name) {
+        next()
+      } else {
+        next({ name: 'Splash' })
+      }
+    }
+  },
+  {
+    path: '/play/',
     name: 'Game',
-    component: () => import(/* webpackChunkName: "game" */ '../views/Game.vue')
+    component: () => import(/* webpackChunkName: "game" */ '../views/Game.vue'),
+    beforeEnter: (to, from, next) => {
+      if (from.name === 'Menu' || from.name === 'Results') {
+        next()
+      } else {
+        next({ name: 'Menu' })
+      }
+    }
   },
   {
     path: '/results',
@@ -31,6 +57,13 @@ const routes = [
     path: '/stats',
     name: 'Stats',
     component: () => import(/* webpackChunkName: "results" */ '../views/Stats.vue'),
+    beforeEnter: (to, from, next) => {
+      if (from.name) {
+        next()
+      } else {
+        next({ name: 'Splash' })
+      }
+    }
   }
 ]
 

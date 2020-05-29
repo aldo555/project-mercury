@@ -1,35 +1,55 @@
 <template>
   <div class="min-h-screen flex flex-col justify-center items-center px-4">
-    <div v-if="results.length" class="flex flex-col max-w-lg w-full mb-8">
-      <router-link :to="{ name: 'Menu' }" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</router-link>
-      <h1 class="text-center mb-4 text-indigo-900 text-4xl capitalize">Stats across all games played</h1>
-      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Overall skill level - <strong class="text-indigo-500">{{ computeSkillLevel() }}</strong></h2>
-      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average WPM - <strong class="text-indigo-500">{{ averageWpm }}</strong></h2>
-      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Average Accuracy - <strong class="text-indigo-500">{{ averageAccuracy }}%</strong></h2>
-      <h2 class="text-center mb-4 text-indigo-800 text-2xl capitalize">Longest game - <strong class="text-indigo-500">{{ longestGameMinutes() }}:{{ longestGameSeconds() }}</strong></h2>
-      <!-- Add reset stats button -->
+    <router-link @click.native="playMenuSound" :to="{ name: 'Menu' }" class="absolute top-0 left-0 p-8 max-w-xl w-full transition ease-in-out duration-150 text-blue-700 hover:text-blue-600 text-2xl capitalize text-left">&lsaquo; Back</router-link>
+    <div v-if="results.length" class="flex flex-col max-w-2xl w-full mb-8 justify-center items-center">
+      <h1 class="text-center mb-4 text-blue-500 text-4xl capitalize">Stats across all games played</h1>
+      <div class="flex flex-row text-2xl px-4 text-blue-200 text-left justify-center">
+        <div class="flex flex-col text-blue-500 mr-4">
+          <span>Skill Level</span>
+          <span>WPM</span>
+          <span>Accuracy</span>
+          <span>Longest Game</span>
+        </div>
+        <div class="flex flex-col text-blue-200">
+          <span>{{ computeSkillLevel() }}</span>
+          <span>{{ averageWpm }}</span>
+          <span>{{ averageAccuracy }}%</span>
+          <span>{{ longestGameMinutes() }}:{{ longestGameSeconds() }}</span>
+        </div>
+      </div>
+      <button @click="resetStats(); playMenuSound()" class="mt-12 bg-gradient-r-blue-500 bg-blue-700 hover:bg-blue-500 px-5 py-2 text-2xl uppercase rounded text-white max-w-xl w-full">Reset Stats</button>
     </div>
     <div v-else class="flex flex-col max-w-lg w-full mb-8">
-      <router-link :to="{ name: 'Menu' }" class="text-indigo-700 mb-6 text-2xl capitalize max-w-xl w-full text-left">&lsaquo; Back</router-link>
-      <h1 class="text-center mb-4 text-indigo-900 text-4xl capitalize">No stats to display. <br /> Go play.</h1>
+      <h1 class="text-center mb-4 text-blue-200 text-4xl"><span class="text-blue-500">No stats to display.</span> <br /> Go play already.</h1>
+      <router-link @click.native="playMenuSound()" :to="{ name: 'Menu'}" class="mt-4 text-center bg-gradient-r-blue-800 bg-blue-900 hover:bg-blue-800 px-5 py-2 text-2xl uppercase rounded text-white max-w-xl w-full">Back To Main Menu</router-link>
     </div>
+
+    <volume></volume>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
+import Volume from '@/components/Volume'
 
 export default {
   name: 'Stats',
+  components: {
+    Volume
+  },
   computed: {
     ...mapGetters({
       results: 'Stats/getResults',
       longestGame: 'Stats/getLongestGame',
       averageWpm: 'Stats/getAverageWpm',
-      averageAccuracy: 'Stats/getAverageAccuracy'
+      averageAccuracy: 'Stats/getAverageAccuracy',
+      menuAudio: 'Music/getMenuAudio'
     })
   },
   methods: {
+    ...mapActions({
+      reset: 'Stats/reset',
+    }),
     longestGameMinutes () {
       return Math.floor(this.longestGame / 60)
     },
@@ -48,7 +68,7 @@ export default {
       } else if (this.averageWpm <= 9) {
         return 'Pathetic'
       } else if (this.averageWpm <= 19) {
-        return 'Barely trying'
+        return 'Barely Trying'
       } else if (this.averageWpm <= 29) {
         return 'Junior Receptionist'
       } else if (this.averageWpm <= 39) {
@@ -57,6 +77,12 @@ export default {
 
       return 'Hacker'
     },
+    playMenuSound () {
+      this.menuAudio.play()
+    },
+    resetStats () {
+      this.reset()
+    }
   }
 }
 </script>

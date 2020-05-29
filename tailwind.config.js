@@ -224,6 +224,7 @@ module.exports = {
     },
     fontFamily: {
       sans: [
+        'eurostile-extended',
         'system-ui',
         '-apple-system',
         'BlinkMacSystemFont',
@@ -416,6 +417,7 @@ module.exports = {
     }),
     zIndex: {
       auto: 'auto',
+      '-1': '-1',
       '0': '0',
       '10': '10',
       '20': '20',
@@ -598,6 +600,9 @@ module.exports = {
       '700': '700ms',
       '1000': '1000ms',
     },
+    linearGradientColors: theme => theme('colors'),
+    radialGradientColors: theme => theme('colors'),
+    conicGradientColors: theme => theme('colors'),
   },
   variants: {
     accessibility: ['responsive', 'focus'],
@@ -690,5 +695,7 @@ module.exports = {
     transitionDuration: ['responsive'],
   },
   corePlugins: {},
-  plugins: [],
+  plugins: [
+    require('tailwindcss-gradients')
+  ],
 }

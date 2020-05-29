@@ -1,6 +1,6 @@
-const COLOR_DEFAULT = '#3c366b'
-const COLOR_WARNING = '#c53030'
-const COLOR_DANGER = '#ecc94b'
+const COLOR_DEFAULT = '#ebf8ff'
+const COLOR_WARNING = '#fed7d7'
+const COLOR_DANGER = '#feebc8'
 
 class Word {
   constructor ({ word, x, y, width }) {

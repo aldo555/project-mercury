@@ -1,28 +1,60 @@
 <template>
-  <div class="min-h-screen relative">
+  <div class="min-h-screen relative" @keydown.esc="pauseGame">
     <form @submit.prevent="scoreWord">
-      <input ref="user-input" v-model="userInput" type="text" class="text-indigo-900 w-full text-center text-6xl shadow-xl border-b border-gray-200" placeholder="type it up">
+      <input ref="user-input" v-model="userInput" type="text" class="text-white w-full text-center text-6xl bg-transparent outline-none py-3" placeholder="type it up">
     </form>
     <canvas ref="game-canvas"></canvas>
-    <div class="absolute top-0 left-0 text-xl py-1 px-4 text-indigo-700">
-      Accuracy: {{ score.accuracy || '-' }} <br />
-      <span class="text-indigo-500">WPM: {{ score.wpm }}</span> <br />
-      Skill level: {{ score.skillLevel }}
-    </div>
-    <div class="absolute top-0 right-0 text-xl py-1 px-4 text-indigo-700 mt-3 flex flex-row">
-      <div v-for="heart in (missesToLose - score.missed)" :key="heart" class="mr-2">
-        <svg class="w-16 h-16 fill-current text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 3.22l-.61-.6a5.5 5.5 0 0 0-7.78 7.77L10 18.78l8.39-8.4a5.5 5.5 0 0 0-7.78-7.77l-.61.61z"></path></svg>
+    <div class="absolute flex flex-row top-0 left-0 text-xl py-3 px-4 text-blue-200">
+      <div class="flex flex-col text-blue-500 mr-4">
+        <span>Accuracy</span>
+        <span>WPM</span>
+        <span>Skill Level</span>
+      </div>
+      <div class="flex flex-col text-blue-200">
+        <span>{{ score.accuracy }}%</span>
+        <span>{{ score.wpm }}</span>
+        <span>{{ score.skillLevel }}</span>
       </div>
     </div>
+    <div class="absolute top-0 right-0 text-xl py-3 px-4 mt-6 text-blue-200 flex flex-row">
+      <div v-for="heart in (missesToLose - score.missed)" :key="heart" class="mr-1">
+        <svg :class="[ missesToLose - score.missed <= 3 ? 'text-red-500' : 'text-blue-200' ]" class="w-4 h-12 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 100"><rect width="256" height="256" /></svg>
+      </div>
+    </div>
+
+    <div v-if="showLeaveModal" class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
+      <div class="fixed inset-0 transition-opacity">
+        <div class="absolute inset-0 bg-blue-900 opacity-75"></div>
+      </div>
+      <div class="card-notched bg-white rounded p-8 overflow-hidden shadow-xl transform transition-all sm:max-w-sm sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+        <div>
+          <div class="text-center">
+            <h3 class="text-2xl leading-6 font-medium text-blue-900" id="modal-headline">
+              Game is Paused
+            </h3>
+          </div>
+        </div>
+        <div class="flex flex-col mt-5 sm:mt-6">
+          <button @click="continueGame()" class="transition ease-in-out duration-150 bg-gradient-r-blue-500 bg-blue-700 hover:bg-blue-500 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Continue</button>
+          <button @click="exitGame()" class="mt-2 transition ease-in-out duration-150 bg-gradient-r-red-700 bg-red-800 hover:bg-red-700 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Exit</button>
+        </div>
+      </div>
+    </div>
+
+    <volume v-if="gameIsPaused"></volume>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import Word from '@/common/Word'
+import Volume from '@/components/Volume'
 
 export default {
   name: 'Game',
+  components: {
+    Volume
+  },
   data () {
     return {
       canvas: null,
@@ -36,6 +68,7 @@ export default {
       },
       score: {
         timeElapsed: 0,
+        typedEntries: 0,
         success: 0,
         errors: 0,
         missed: 0,
@@ -43,6 +76,8 @@ export default {
         accuracy: 0,
         skillLevel: ''
       },
+      scoreSound: null,
+      errorSound: null,
       gameOptions: {
         wordsToAdd: 0,
         intensity: 0
@@ -53,7 +88,9 @@ export default {
         last: null,
         step: 1 // represents fps so 1/60 for 60fps
       },
-      userInput: ''
+      userInput: '',
+      showLeaveModal: false,
+      gameIsPaused: false
     }
   },
   computed: {
@@ -65,7 +102,10 @@ export default {
       addWordInterval: 'Settings/getAddWordInterval',
       intensityStartingPoint: 'Settings/getIntensityStartingPoint',
       intensityIncreaseRate: 'Settings/getIntensityIncreaseRate',
-      missesToLose: 'Settings/getMissesToLose'
+      missesToLose: 'Settings/getMissesToLose',
+      playMusic: 'Music/getPlayMusic',
+      backgroundMusic: 'Music/getBackgroundMusic',
+      menuVolume: 'Music/getMenuVolume'
     })
   },
   mounted () {
@@ -80,8 +120,8 @@ export default {
       this.canvas = this.$refs['game-canvas']
       this.context = this.canvas.getContext('2d')
       this.canvas.width = this.canvas.parentElement.clientWidth
-      this.canvas.height = this.canvas.parentElement.clientHeight - 96 // the 96 is here for test purposes, accounts for the input at the top
-      this.context.font = `bold ${this.canvasOptions.textSize}px Helvetica`
+      this.canvas.height = this.canvas.parentElement.clientHeight - 120 // accounts for the input at the top
+      this.context.font = `bold ${this.canvasOptions.textSize}px eurostile`
       window.addEventListener('resize', this.resizeCanvas)
 
       this.gameOptions.wordsToAdd = this.wordsToAddStartingPoint
@@ -90,14 +130,19 @@ export default {
       this.prepWords()
 
       this.$refs['user-input'].focus()
+
+      this.scoreSound = new Audio(require('@/assets/score.wav'))
+      this.errorSound = new Audio(require('@/assets/error.wav'))
+      this.scoreSound.volume = this.menuVolume
+      this.errorSound.volume = this.menuVolume
     },
     clearCanvas () {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
     },
     resizeCanvas () {
       this.canvas.width = this.$refs['game-canvas'].parentElement.clientWidth
-      this.canvas.height = this.$refs['game-canvas'].parentElement.clientHeight - 96
-      this.context.font = `bold ${this.canvasOptions.textSize}px Helvetica`
+      this.canvas.height = this.$refs['game-canvas'].parentElement.clientHeight - 120
+      this.context.font = `bold ${this.canvasOptions.textSize}px eurostile`
     },
     timestamp () {
       return window.performance && window.performance.now ? window.performance.now() : new Date().getTime()
@@ -133,9 +178,13 @@ export default {
       this.words.displayed.splice(this.words.displayed.indexOf(word), 1)
     },
     computeWpm () {
-      return Math.floor((this.score.success + this.score.errors) / (this.score.timeElapsed / 60))
+      return Math.floor((this.score.typedEntries / 5) / (this.score.timeElapsed / 60))
     },
     computeAccuracy () {
+      if (!this.score.success && !this.score.errors) {
+        return 100
+      }
+
       return Math.floor((this.score.success / (this.score.success + this.score.errors)) * 100)
     },
     computeSkillLevel () {
@@ -144,7 +193,7 @@ export default {
       } else if (this.score.wpm <= 9) {
         return 'Pathetic'
       } else if (this.score.wpm <= 19) {
-        return 'Barely trying'
+        return 'Barely Trying'
       } else if (this.score.wpm <= 29) {
         return 'Junior Receptionist'
       } else if (this.score.wpm <= 39) {
@@ -158,6 +207,10 @@ export default {
       requestAnimationFrame(this.drawWords)
     },
     drawWords () {
+      if (this.gameIsPaused) {
+        return
+      }
+
       this.clearCanvas()
 
       if (!this.timestep.last) {
@@ -170,6 +223,7 @@ export default {
         if (word.x > this.canvas.width) {
           this.removeWord(word)
           this.score.missed += 1
+          this.errorSound.play()
 
           if (this.score.missed >= this.missesToLose) {
             break
@@ -186,6 +240,8 @@ export default {
       if (this.score.missed >= this.missesToLose) {
         window.removeEventListener('resize', this.resizeCanvas)
         this.addNewResult(this.score)
+        this.playMusic.pause()
+        this.backgroundMusic.play()
         this.$router.push({ name: 'Results', params: { score: this.score } })
         return
       }
@@ -212,6 +268,12 @@ export default {
 
       requestAnimationFrame(this.drawWords)
     },
+    playScoreSound () {
+      this.scoreSound.play()
+    },
+    playErrorSound () {
+      this.errorSound.play()
+    },
     scoreWord () {
       const wordToDelete = this.words.displayed.find(word => {
         if (!this.useAccents) {
@@ -223,12 +285,41 @@ export default {
 
       if (wordToDelete) {
         this.score.success += 1
+        this.score.typedEntries += wordToDelete.word.length
         this.removeWord(wordToDelete)
+        this.playScoreSound()
       } else {
         this.score.errors += 1
+        this.playErrorSound()
       }
 
       this.userInput = ''
+    },
+    pauseGame() {
+      this.showLeaveModal = true
+      this.gameIsPaused = true
+      this.playMusic.pause()
+      this.backgroundMusic.play()
+    },
+    continueGame() {
+      this.$refs['user-input'].focus()
+      this.showLeaveModal = false
+      this.gameIsPaused = false
+      this.backgroundMusic.pause()
+      this.playMusic.play()
+      requestAnimationFrame(this.drawWords)
+    },
+    exitGame() {
+      this.$router.go()
+    }
+  },
+  beforeRouteLeave (to, from , next) {
+    if (this.score.missed >= this.missesToLose) {
+      next()
+    }
+    else {
+      this.pauseGame()
+      next(false)
     }
   }
 }

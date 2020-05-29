@@ -1,10 +1,11 @@
 const initialState = () => ({
   language: 'english',
   useAccents: false,
-  selectedDifficulty: 0, // the index of the difficulty
+  selectedDifficulty: 1, // the index of the difficulty
   difficulties: [
     {
       name: 'Easy',
+      description: 'For people who never touched a keyboard before.',
       wordsToAddStartingPoint: 2,
       wordsToAddInterval: 3,
       addWordInterval: 60,
@@ -14,6 +15,7 @@ const initialState = () => ({
     },
     {
       name: 'Normal',
+      description: 'Recommended difficulty for most people.',
       wordsToAddStartingPoint: 2,
       wordsToAddInterval: 2,
       addWordInterval: 60,
@@ -23,6 +25,7 @@ const initialState = () => ({
     },
     {
       name: 'Hard',
+      description: 'Good luck! You\'re gonna need it.',
       wordsToAddStartingPoint: 3,
       wordsToAddInterval: 2,
       addWordInterval: 50,
@@ -32,6 +35,7 @@ const initialState = () => ({
     },
     {
       name: 'Insane',
+      description: 'You better get ready for this.',
       wordsToAddStartingPoint: 3,
       wordsToAddInterval: 1,
       addWordInterval: 40,
