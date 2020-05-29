@@ -26,8 +26,9 @@
           </div>
         </div>
         <div class="flex flex-col mt-10">
+          <button @click="muteVolume(); playMenuSound()" class="mb-2 transition ease-in-out duration-150 bg-gradient-r-blue-500 bg-blue-700 hover:bg-blue-500 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Mute</button>
           <button @click="resetVolume(); playMenuSound()" class="mb-2 transition ease-in-out duration-150 bg-gradient-r-red-700 bg-red-800 hover:bg-red-700 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Reset</button>
-          <button @click="toggleVolumeModal(); playMenuSound()" class="transition ease-in-out duration-150 bg-gradient-r-blue-500 bg-blue-700 hover:bg-blue-500 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Back</button>
+          <button @click="toggleVolumeModal(); playMenuSound()" class="transition ease-in-out duration-150 bg-gradient-r-blue-500 bg-gradient-r-blue-800 bg-blue-900 hover:bg-blue-800 px-2 py-1 text-xl uppercase rounded text-white max-w-xl w-full">Back</button>
         </div>
       </div>
     </div>
@@ -79,14 +80,15 @@ export default {
   },
   methods: {
     ...mapActions({
-      resetVolume: 'Music/resetVolume'
+      resetVolume: 'Music/resetVolume',
+      muteVolume: 'Music/muteVolume'
     }),
     playMenuSound () {
       this.menuAudio.play()
     },
     toggleVolumeModal () {
       this.showVolumeModal = !this.showVolumeModal
-    }
+    },
   },
 }
 </script>

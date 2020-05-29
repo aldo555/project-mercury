@@ -3,8 +3,8 @@ const initialState = () => ({
   backgroundMusic: new Audio(require('@/assets/background.wav')),
   playMusic: new Audio(require('@/assets/play.wav')),
   menuVolume: 0.6,
-  backgroundVolume: 0.3,
-  playVolume: 0.3,
+  backgroundVolume: 0.1,
+  playVolume: 0.1,
 })
 
 const state = initialState()
@@ -33,6 +33,9 @@ const actions = {
   },
   resetVolume: ({ commit }) => {
     commit('RESET_VOLUME')
+  },
+  muteVolume: ({ commit }) => {
+    commit('MUTE_VOLUME')
   }
 }
 
@@ -73,6 +76,14 @@ const mutations = {
     state.backgroundMusic.volume = newState.backgroundVolume
     state.playVolume = newState.playVolume
     state.playMusic.volume = newState.playVolume
+  },
+  MUTE_VOLUME: (state) => {
+    state.menuVolume = 0
+    state.menuAudio.volume = 0
+    state.backgroundVolume = 0
+    state.backgroundMusic.volume = 0
+    state.playVolume = 0
+    state.playMusic.volume = 0
   }
 }
 
