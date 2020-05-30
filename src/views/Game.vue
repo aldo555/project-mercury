@@ -23,7 +23,7 @@
     </div>
 
     <div v-if="showLeaveModal" class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
-      <div class="fixed inset-0 transition-opacity">
+      <div @click="continueGame()" class="fixed inset-0 transition-opacity">
         <div class="absolute inset-0 bg-blue-900 opacity-75"></div>
       </div>
       <div class="card-notched bg-white rounded p-8 overflow-hidden shadow-xl transform transition-all sm:max-w-sm sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
@@ -184,7 +184,11 @@ export default {
       word.x = 0 - (this.context.measureText(word).width + Math.floor(Math.random() * this.context.measureText(word).width))
     },
     computeWpm () {
-      return Math.floor((this.typedEntriesSum / (this.typedEntriesSum / this.score.typedEntries.length)) / (this.score.timeElapsed / 60))
+      if (!this.score.typedEntries.length) {
+        return 0
+      }
+
+      return Math.floor(((this.typedEntriesSum + this.score.typedEntries.length) / (this.typedEntriesSum / this.score.typedEntries.length)) / (this.score.timeElapsed / 60))
     },
     computeAccuracy () {
       if (!this.score.success && !this.score.errors) {
