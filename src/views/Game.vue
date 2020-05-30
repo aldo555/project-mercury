@@ -68,7 +68,7 @@ export default {
       },
       score: {
         timeElapsed: 0,
-        typedEntries: 0,
+        typedEntries: [],
         success: 0,
         errors: 0,
         missed: 0,
@@ -106,7 +106,10 @@ export default {
       playMusic: 'Music/getPlayMusic',
       backgroundMusic: 'Music/getBackgroundMusic',
       menuVolume: 'Music/getMenuVolume'
-    })
+    }),
+    typedEntriesSum () {
+      return this.score.typedEntries.reduce((a, b) => a + b, 0)
+    }
   },
   mounted () {
     this.initGame()
@@ -160,7 +163,9 @@ export default {
       })
     },
     displayWords (numberOfWords) {
-      const shuffled = [...this.words.all].sort(() => 0.5 - Math.random())
+      const allExcludingDisplayed = this.words.all.filter((item) => !this.words.displayed.includes(item))
+
+      const shuffled = [...allExcludingDisplayed].sort(() => 0.5 - Math.random())
 
       const wordsToAdd = shuffled.slice(0, numberOfWords)
 
@@ -176,9 +181,10 @@ export default {
     },
     removeWord (word) {
       this.words.displayed.splice(this.words.displayed.indexOf(word), 1)
+      word.x = 0 - (this.context.measureText(word).width + Math.floor(Math.random() * this.context.measureText(word).width))
     },
     computeWpm () {
-      return Math.floor((this.score.typedEntries / 5) / (this.score.timeElapsed / 60))
+      return Math.floor((this.typedEntriesSum / (this.typedEntriesSum / this.score.typedEntries.length)) / (this.score.timeElapsed / 60))
     },
     computeAccuracy () {
       if (!this.score.success && !this.score.errors) {
@@ -285,7 +291,7 @@ export default {
 
       if (wordToDelete) {
         this.score.success += 1
-        this.score.typedEntries += wordToDelete.word.length
+        this.score.typedEntries.push(wordToDelete.word.length)
         this.removeWord(wordToDelete)
         this.playScoreSound()
       } else {
