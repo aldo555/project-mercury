@@ -103,6 +103,7 @@ export default {
       intensityStartingPoint: 'Settings/getIntensityStartingPoint',
       intensityIncreaseRate: 'Settings/getIntensityIncreaseRate',
       missesToLose: 'Settings/getMissesToLose',
+      selectedDifficultyName: 'Settings/getSelectedDifficultyName',
       playMusic: 'Music/getPlayMusic',
       backgroundMusic: 'Music/getBackgroundMusic',
       menuVolume: 'Music/getMenuVolume'
@@ -249,6 +250,7 @@ export default {
 
       if (this.score.missed >= this.missesToLose) {
         window.removeEventListener('resize', this.resizeCanvas)
+        this.score.difficulty = this.selectedDifficultyName 
         this.addNewResult(this.score)
         this.playMusic.pause()
         this.backgroundMusic.play()

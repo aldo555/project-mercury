@@ -58,7 +58,8 @@ const getters = {
   getIntensityIncreaseRate: state => state.difficulties[state.selectedDifficulty].intensityIncreaseRate,
   getMissesToLose: state => state.difficulties[state.selectedDifficulty].missesToLose,
   getDifficulties: state => state.difficulties,
-  getSelectedDifficulty: state => state.selectedDifficulty
+  getSelectedDifficulty: state => state.selectedDifficulty,
+  getSelectedDifficultyName: state => state.difficulties[state.selectedDifficulty].name
 }
 
 const actions = {
